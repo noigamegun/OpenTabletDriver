@@ -11,7 +11,15 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
-    - uses: github/issue-labeler@v3.3
+    - name: Check if issue has labels
+      id: check-labels
+      run: |
+        LABEL_COUNT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels | jq length)
+        echo "::set-output name=label-count::$LABEL_COUNT"
+      shell: bash
+    - name: Run issue labeler
+      if: steps.check-labels.outputs.label-count == '0'
+      uses: github/issue-labeler@v3.3
       with:
         repo-token: "${{ github.token }}"
         configuration-path: .github/labeler.yml
